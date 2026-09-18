@@ -57,6 +57,7 @@ function writerWith(descriptor, opts = {}) {
 test('the write registry is empty, so a writer exposes no write methods', () => {
   assert.deepStrictEqual([...WRITES], []);
   const w = createFieldWriter({
+    endpoint: 'https://pom.test/graphql',
     agent: 'any-agent', credentials: creds(), audit: memAudit(), fetchImpl: async () => {},
   });
   assert.deepStrictEqual([...w.available], []);
@@ -66,6 +67,7 @@ test('the write registry is empty, so a writer exposes no write methods', () => 
 
 test('a writer is frozen', () => {
   const w = createFieldWriter({
+    endpoint: 'https://pom.test/graphql',
     agent: 'a', credentials: creds(), audit: memAudit(), fetchImpl: async () => {},
   });
   assert.ok(Object.isFrozen(w));
@@ -73,10 +75,10 @@ test('a writer is frozen', () => {
 });
 
 test('a writer cannot be built without an agent name or an audit port', () => {
-  assert.throws(() => createFieldWriter({ credentials: creds(), audit: memAudit() }),
+  assert.throws(() => createFieldWriter({ credentials: creds(), audit: memAudit(), endpoint: 'https://pom.test/graphql' }),
     /needs \{ agent \}/);
   assert.throws(
-    () => createFieldWriter({ agent: 'a', credentials: creds(), audit: {} }),
+    () => createFieldWriter({ agent: 'a', credentials: creds(), audit: {}, endpoint: 'https://pom.test/graphql' }),
     /audit port is missing record/);
 });
 

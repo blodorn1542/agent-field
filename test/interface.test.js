@@ -29,8 +29,11 @@ function spyFetch(payload = { data: {} }) {
   return impl;
 }
 
+const TEST_ENDPOINT = 'https://pom.test/graphql';
+
 function reader(fetchImpl = spyFetch()) {
-  return createFieldReader({ credentials: creds(), fetchImpl });
+  // The endpoint is required now - there is no default in the package.
+  return createFieldReader({ credentials: creds(), fetchImpl, endpoint: TEST_ENDPOINT });
 }
 
 /* ------------------------------------------------- the surface is the list -- */

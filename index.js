@@ -48,10 +48,25 @@ const pom = require('./lib/adapters/pom');
 /** The adapters this package ships. A second field system would be one more entry. */
 const ADAPTER_MODULES = { pom };
 
-const DEFAULT_ENDPOINT = '';
-
+/**
+ * The endpoint is configuration, not a constant in this file.
+ *
+ * It is deliberately absent from this repository. The package is public so that
+ * agents can depend on it; the address of a particular company's field system
+ * is not something a public package needs to carry, and a default here would
+ * put it in the source, in the history, and in every fork of both.
+ *
+ * So it is required, and its absence fails loudly at construction rather than
+ * silently pointing a reader somewhere nobody chose.
+ */
 function resolveEndpoint(options) {
-  return options.endpoint || process.env.POM_ENDPOINT || DEFAULT_ENDPOINT;
+  const endpoint = options.endpoint || process.env.POM_ENDPOINT;
+  if (!endpoint) {
+    throw new Error('agent-field needs an endpoint: pass { endpoint } or set POM_ENDPOINT. '
+      + 'There is no default - the address of a field system is configuration, and this '
+      + 'package does not ship one.');
+  }
+  return endpoint;
 }
 
 function resolveCredentials(options) {

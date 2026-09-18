@@ -48,6 +48,7 @@ test('the only auth header sent is Bearer', async () => {
 
 test('a tenant with no stored key gets a clear message, not a 401 later', async () => {
   const field = createFieldReader({
+    endpoint: 'https://pom.test/graphql',
     credentials: { get: () => null, save: () => {}, remove: () => {} },
     fetchImpl: fakeFetch([conn('infiniteTypes', [])]),
     pom: { apiKey: null },

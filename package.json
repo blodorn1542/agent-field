@@ -1,0 +1,19 @@
+{
+  "name": "agent-field",
+  "version": "1.0.0",
+  "description": "Shared Field Services layer for the agent platform. Pool Office Manager is an adapter behind it. Reads go through a frozen read-only interface; writes go through a separate, per-agent, per-tenant, audited seam.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib/"
+  ],
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

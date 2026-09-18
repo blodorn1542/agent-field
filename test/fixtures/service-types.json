@@ -1,0 +1,142 @@
+[
+ {
+  "id": "cmlkmfy3s0001m50198hkvtlz",
+  "display": "Cleaning",
+  "cost": null,
+  "defaultPrice": 75,
+  "isInactive": true,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy480005m501n408zcv4",
+  "display": "Note",
+  "cost": null,
+  "defaultPrice": null,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy4n000bm501g2uk81ud",
+  "display": "Pool Opening - NO USE",
+  "cost": null,
+  "defaultPrice": 0,
+  "isInactive": true,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy5z000nm501udlmw1n4",
+  "display": "Pool Closing",
+  "cost": null,
+  "defaultPrice": 425,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy6y0013m501ue0ha2hf",
+  "display": "Spa Service - Weekly - Standalone",
+  "cost": null,
+  "defaultPrice": 50,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy7r001fm501k67prsoh",
+  "display": "Pool Service - Indoor",
+  "cost": null,
+  "defaultPrice": 50,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy8c001pm501seeop8qd",
+  "display": "Pool Service - Weekly",
+  "cost": null,
+  "defaultPrice": 84,
+  "isInactive": false,
+  "isServiceCall": true,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfy9v002dm501cgyby2es",
+  "display": "Estimate Description:Salt System Install",
+  "cost": null,
+  "defaultPrice": 1250,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfya9002jm501altm1a8j",
+  "display": "Estimate",
+  "cost": null,
+  "defaultPrice": null,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfyal002pm501les2ik3x",
+  "display": "Fixed Price - Weekly Spa",
+  "cost": null,
+  "defaultPrice": null,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfyb6002zm501sn65ol85",
+  "display": "Professional Services",
+  "cost": null,
+  "defaultPrice": 0,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfybj0035m5016aag8036",
+  "display": "Pool Opening - Vinyl",
+  "cost": null,
+  "defaultPrice": 400,
+  "isInactive": true,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfybv003bm5011z6bbwi6",
+  "display": "Estimate Description:Preasure Test",
+  "cost": null,
+  "defaultPrice": 450,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ },
+ {
+  "id": "cmlkmfycc003hm501gizms1j7",
+  "display": "Pool/ Spa Repair",
+  "cost": null,
+  "defaultPrice": 125,
+  "isInactive": false,
+  "isServiceCall": false,
+  "isServiceType": true,
+  "deleted": false
+ }
+]

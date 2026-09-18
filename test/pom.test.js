@@ -229,3 +229,56 @@ test('a site with scrambled name fields still gets a label and keeps the raw val
   assert.strictEqual(items[0].active, false);
   assert.strictEqual(items[0].raw.firstName, '11 Woodland Dr');
 });
+
+/* ------------------------------------------------------------ date window -- */
+
+test('a windowed read sorts newest-first, because POM has no range filter', async () => {
+  const f = fakeFetch([conn('infiniteServices', [
+    { id: 'a', startTime: '2026-09-18T10:00:00.000Z', type: {}, customer: {}, technician: {} },
+  ])]);
+  await reader(f).getServiceReports({ tenant: 't', since: '2026-09-17' });
+  assert.deepStrictEqual(f.calls[0].variables.sort, [{ field: 'startTime', order: 'DESC' }]);
+});
+
+test('an unwindowed read does not sort, keeping POM default order', async () => {
+  const f = fakeFetch([conn('infiniteServices', [])]);
+  await reader(f).getServiceReports({ tenant: 't' });
+  assert.strictEqual(f.calls[0].variables.sort, null);
+});
+
+test('the walk stops at the first record older than since', async () => {
+  const f = fakeFetch([
+    conn('infiniteServices', [
+      { id: 'new1', startTime: '2026-09-18T10:00:00.000Z', type: {}, customer: {}, technician: {} },
+      { id: 'new2', startTime: '2026-09-17T10:00:00.000Z', type: {}, customer: {}, technician: {} },
+      { id: 'old1', startTime: '2026-09-15T10:00:00.000Z', type: {}, customer: {}, technician: {} },
+    ], { hasNextPage: true, endCursor: 'c1' }),
+    conn('infiniteServices', [
+      { id: 'older', startTime: '2020-01-01T00:00:00.000Z', type: {}, customer: {}, technician: {} },
+    ]),
+  ]);
+  const r = await reader(f).getServiceReports({ tenant: 't', since: '2026-09-16' });
+  assert.deepStrictEqual(r.items.map((s) => s.serviceReportId), ['new1', 'new2']);
+  assert.strictEqual(f.calls.length, 1, 'must not fetch a second page once it is past the window');
+  assert.strictEqual(r.truncated, false, 'stopping on purpose is not truncation');
+});
+
+test('until trims the newer end of the window', async () => {
+  const f = fakeFetch([conn('infiniteServices', [
+    { id: 'today', startTime: '2026-09-18T10:00:00.000Z', type: {}, customer: {}, technician: {} },
+    { id: 'yday', startTime: '2026-09-17T10:00:00.000Z', type: {}, customer: {}, technician: {} },
+  ])]);
+  const r = await reader(f).getServiceReports({
+    tenant: 't', since: '2026-09-16', until: '2026-09-17T23:59:59.999Z',
+  });
+  assert.deepStrictEqual(r.items.map((s) => s.serviceReportId), ['yday']);
+  assert.deepStrictEqual(r.window, { since: '2026-09-16', until: '2026-09-17T23:59:59.999Z' });
+});
+
+test('an unparseable window is rejected rather than silently ignored', async () => {
+  const f = fakeFetch([conn('infiniteServices', [])]);
+  await assert.rejects(
+    () => reader(f).getServiceReports({ tenant: 't', since: 'last tuesday' }),
+    /unparseable since/);
+  assert.strictEqual(f.calls.length, 0);
+});

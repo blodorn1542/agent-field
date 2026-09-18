@@ -35,8 +35,8 @@ Four methods. This is the entire surface.
 
 - `getAppointments({ tenant, startDate, endDate })` — scheduled visits. The date
   window is **required**; see "POM quirks" for why.
-- `getServiceReports({ tenant, siteIds?, serviceTypeIds?, flag? })` — completed
-  records, chemistry included.
+- `getServiceReports({ tenant, since?, until?, siteIds?, serviceTypeIds?, flag? })`
+  — completed records, chemistry included. **Pass `since`.** See below.
 - `getServiceTypes({ tenant })` — the raw service-type catalog, unnormalized.
 - `getSites({ tenant })` — the serviced properties.
 
@@ -149,8 +149,15 @@ recovered by probing rather than read from a schema.
 - **The two selectors are different types.** Appointments take
   `{ startDate, endDate }`. Services take `{ filters: { … } }`, and its date
   filters are `DateTimeFilter` — `equals`/`in`/`not`/`notIn` and **no range
-  operators**. Services cannot be fetched by date window at all; narrow by
-  `siteIds` instead.
+  operators**.
+- **A service date window is served by sorting, not filtering.** The service
+  connection is ascending by default and sortable via
+  `sort: [{ field: startTime, order: DESC }]`. `getServiceReports({ since })`
+  sorts newest-first and stops at the first record older than `since`. On the
+  Elite Pools tenant that is **1 page / 370ms for one day**, against 200 pages /
+  41s for an unwindowed walk that still truncates. An unwindowed read walks the
+  company's entire history — always pass `since` in a recurring job.
+- **`sort` is a list**, `[ServicesSort!]`, not a single object.
 - **Page size caps at 100.** `first: 101` is a validation error.
 - **A service type's name is `display`.** There is no `name` on `Type`.
 - **POM misspells cyanuric acid as `cynuricAcid`.** Matched on the wire,

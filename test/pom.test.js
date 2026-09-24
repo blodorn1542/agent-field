@@ -183,6 +183,60 @@ test('an unrecorded reading stays null and is never read as zero', async () => {
   assert.strictEqual(items[0].chemistryRecorded, 1);
 });
 
+test('the service query requests notes, items used and the checklist Q&A', async () => {
+  const f = fakeFetch([conn('infiniteServices', [])]);
+  await reader(f).getServiceReports({ tenant: 't' });
+  const q = f.calls[0].query;
+  for (const field of ['customerNotes', 'internalNotes',
+    'inventoryUsed', 'inventoryItem', 'customFields', 'customField']) {
+    assert.ok(q.includes(field), 'service query is missing ' + field);
+  }
+});
+
+test('a service carries notes, items used and the checklist Q&A, shaped generically', async () => {
+  const f = fakeFetch([conn('infiniteServices', [{
+    id: 'svc3', startTime: '2026-08-28T13:00:00.000Z',
+    ph: 7.5, chlorine: 2.5, alkalinity: 90,
+    customerNotes: 'Left gate unlocked', internalNotes: 'Low light on salt cell 2400 ppm',
+    type: {}, customer: { id: 'cu9' }, technician: { id: 't1' },
+    inventoryUsed: [
+      { id: 'iu1', quantity: 2, price: 8, inventoryItem: { id: 'it1', name: 'Chemicals:Chlorine Tabs', sku: 'CT-1' } },
+    ],
+    customFields: [
+      { id: 'cf1', value: 'Took Picture of Salt Cell', customField: { id: 'q1', name: 'salt pool take pic', type: 'TEXT' } },
+      { id: 'cf2', value: 'Yes', customField: { id: 'q2', name: 'Did you test the water', type: 'BOOLEAN' } },
+    ],
+  }])]);
+  const { items } = await reader(f).getServiceReports({ tenant: 't' });
+  const s = items[0];
+
+  assert.strictEqual(s.notes.customer, 'Left gate unlocked');
+  assert.strictEqual(s.notes.internal, 'Low light on salt cell 2400 ppm');
+
+  assert.strictEqual(s.itemsUsed.length, 1);
+  assert.strictEqual(s.itemsUsed[0].name, 'Chemicals:Chlorine Tabs');
+  assert.strictEqual(s.itemsUsed[0].sku, 'CT-1');
+  assert.strictEqual(s.itemsUsed[0].quantity, 2);
+
+  assert.strictEqual(s.checklist.length, 2);
+  assert.strictEqual(s.checklist[0].name, 'salt pool take pic');
+  assert.strictEqual(s.checklist[0].value, 'Took Picture of Salt Cell');
+  assert.strictEqual(s.checklist[1].name, 'Did you test the water');
+  assert.strictEqual(s.checklist[1].value, 'Yes');
+});
+
+test('a service with no notes, items or checklist shapes them empty, not undefined', async () => {
+  const f = fakeFetch([conn('infiniteServices', [{
+    id: 'svc4', startTime: '2026-08-28T13:00:00.000Z',
+    ph: 7.5, type: {}, customer: {}, technician: {},
+  }])]);
+  const { items } = await reader(f).getServiceReports({ tenant: 't' });
+  const s = items[0];
+  assert.deepStrictEqual(s.notes, { customer: null, internal: null });
+  assert.deepStrictEqual(s.itemsUsed, []);
+  assert.deepStrictEqual(s.checklist, []);
+});
+
 test('every chemistry key maps to a field POM actually has', () => {
   const POM_FIELDS = ['ph', 'chlorine', 'combinedChlorine', 'alkalinity', 'calcium',
     'cynuricAcid', 'salt', 'phosphorus', 'copper', 'iron', 'waterTemperature'];

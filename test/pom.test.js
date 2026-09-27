@@ -263,12 +263,26 @@ test('a site is read from POM Customer records, address first', async () => {
     id: 'cu1', firstName: '177 Sagaponack Road', lastName: 'Elghanayan',
     email: 'x@example.com', streetAddress: '177 Sagaponack Road', city: 'Bridgehampton',
     state: 'NY', phoneNumber: null, billingAddress: null, latitude: 40.9, longitude: -72.3,
-    status: 'ACTIVE', notes: null,
+    status: 'ACTIVE', notes: null, tags: ['Salt Pool', 'Chems Inclusive'],
   }])]);
   const { items } = await reader(f).getSites({ tenant: 't' });
   assert.strictEqual(items[0].siteId, 'cu1');
   assert.strictEqual(items[0].label, '177 Sagaponack Road');
   assert.strictEqual(items[0].active, true);
+  assert.deepStrictEqual(items[0].tags, ['Salt Pool', 'Chems Inclusive']);
+  assert.match(f.calls[0].query, /\btags\b/, 'tags are asked for on the wire');
+});
+
+test('a site with no tags carries an empty list, never null', async () => {
+  const f = fakeFetch([conn('infiniteCustomers', [
+    { id: 'cu1', firstName: 'a', status: 'ACTIVE' },
+    { id: 'cu2', firstName: 'b', status: 'ACTIVE', tags: null },
+    { id: 'cu3', firstName: 'c', status: 'ACTIVE', tags: ['ok', 7, null] },
+  ])]);
+  const { items } = await reader(f).getSites({ tenant: 't' });
+  assert.deepStrictEqual(items[0].tags, []);
+  assert.deepStrictEqual(items[1].tags, []);
+  assert.deepStrictEqual(items[2].tags, ['ok'], 'only strings survive');
 });
 
 test('a site with scrambled name fields still gets a label and keeps the raw values', async () => {

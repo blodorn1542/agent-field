@@ -196,6 +196,14 @@ to know before building that:
 That logic is deliberately **not** in this package — it is a judgement about what
 counts as missed, and it belongs to whichever agent is making the call.
 
+### Customer tags
+
+A shaped site carries `tags`: the company's own labels on the POM Customer
+record, as a flat list of strings, always an array (`[]` when there are none).
+On the live tenant these hold things like `Salt Pool`, `2X Weekly Service` and
+the pricing tier. They are carried verbatim; which tag means what is per-tenant
+config in the consuming agent, never a rule here.
+
 ## Service-type normalization
 
 `getServiceTypes()` returns a company's catalog exactly as that company keeps it.

@@ -188,7 +188,8 @@ test('the service query requests notes, items used and the checklist Q&A', async
   await reader(f).getServiceReports({ tenant: 't' });
   const q = f.calls[0].query;
   for (const field of ['customerNotes', 'internalNotes',
-    'inventoryUsed', 'inventoryItem', 'customFields', 'customField']) {
+    'inventoryUsed', 'inventoryItem', 'customFields', 'customField',
+    'billingStatus', 'quantity', 'ticketStatus']) {
     assert.ok(q.includes(field), 'service query is missing ' + field);
   }
 });
@@ -198,9 +199,10 @@ test('a service carries notes, items used and the checklist Q&A, shaped generica
     id: 'svc3', startTime: '2026-08-28T13:00:00.000Z',
     ph: 7.5, chlorine: 2.5, alkalinity: 90,
     customerNotes: 'Left gate unlocked', internalNotes: 'Low light on salt cell 2400 ppm',
+    billingStatus: 'Ready', quantity: null, ticketStatus: 'NO_TICKET',
     type: {}, customer: { id: 'cu9' }, technician: { id: 't1' },
     inventoryUsed: [
-      { id: 'iu1', quantity: 2, price: 8, inventoryItem: { id: 'it1', name: 'Chemicals:Chlorine Tabs', sku: 'CT-1' } },
+      { id: 'iu1', quantity: 2, price: 8, inventoryItem: { id: 'it1', name: 'Chemicals:Chlorine Tabs', sku: 'CT-1', price: 7.89 } },
     ],
     customFields: [
       { id: 'cf1', value: 'Took Picture of Salt Cell', customField: { id: 'q1', name: 'salt pool take pic', type: 'TEXT' } },
@@ -217,6 +219,13 @@ test('a service carries notes, items used and the checklist Q&A, shaped generica
   assert.strictEqual(s.itemsUsed[0].name, 'Chemicals:Chlorine Tabs');
   assert.strictEqual(s.itemsUsed[0].sku, 'CT-1');
   assert.strictEqual(s.itemsUsed[0].quantity, 2);
+  assert.strictEqual(s.itemsUsed[0].price, 8, 'the price entered on this service');
+  assert.strictEqual(s.itemsUsed[0].listPrice, 7.89, "the item's own list price, separately");
+
+  // The billing facts (v1.2.0), carried verbatim: the vocabulary is the company's.
+  assert.strictEqual(s.billingStatus, 'Ready');
+  assert.strictEqual(s.quantity, null);
+  assert.strictEqual(s.ticketStatus, 'NO_TICKET');
 
   assert.strictEqual(s.checklist.length, 2);
   assert.strictEqual(s.checklist[0].name, 'salt pool take pic');
@@ -235,6 +244,9 @@ test('a service with no notes, items or checklist shapes them empty, not undefin
   assert.deepStrictEqual(s.notes, { customer: null, internal: null });
   assert.deepStrictEqual(s.itemsUsed, []);
   assert.deepStrictEqual(s.checklist, []);
+  assert.strictEqual(s.billingStatus, null);
+  assert.strictEqual(s.quantity, null);
+  assert.strictEqual(s.ticketStatus, null);
 });
 
 test('every chemistry key maps to a field POM actually has', () => {

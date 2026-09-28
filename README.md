@@ -204,6 +204,16 @@ On the live tenant these hold things like `Salt Pool`, `2X Weekly Service` and
 the pricing tier. They are carried verbatim; which tag means what is per-tenant
 config in the consuming agent, never a rule here.
 
+### Billing facts on a service report (v1.2.0)
+
+A shaped service report also carries the three billing facts an invoicing
+agent needs, verbatim from POM: `billingStatus` (the company's own words -
+"Ready", "Not Billed", "QBO" - what any value means is that company's
+ruleset), `quantity` (POM's per-service quantity, usually null) and
+`ticketStatus`. Each `itemsUsed` entry carries both `price` (what was entered
+on this service, often null) and `listPrice` (the inventory item's own price,
+which is what an invoice would carry). Nothing here decides what bills.
+
 ## Service-type normalization
 
 `getServiceTypes()` returns a company's catalog exactly as that company keeps it.

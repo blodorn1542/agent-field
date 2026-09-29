@@ -285,6 +285,26 @@ test('a site is read from POM Customer records, address first', async () => {
   assert.match(f.calls[0].query, /\btags\b/, 'tags are asked for on the wire');
 });
 
+test('Custom Pricing: each customer\'s quoted prices per type, in dollars, on their own query (v1.3.0)', async () => {
+  const f = fakeFetch([conn('infiniteCustomers', [
+    { id: 'cu1', quotedPrices: [
+      { id: 'q1', typeId: 'ty1', price: 82, serviceTypeDisplay: 'Pool Service - Weekly' },
+      { id: 'q2', typeId: 'ty2', price: 450, serviceTypeDisplay: 'Pool Closing' },
+      { id: 'q3', typeId: null, price: 650, serviceTypeDisplay: 'Pressure test' },
+      { id: 'q4', typeId: 'ty3', price: null, serviceTypeDisplay: 'Spa Closing' },
+    ] },
+    { id: 'cu2', quotedPrices: [] },
+    { id: 'cu3', quotedPrices: null },
+  ])]);
+  const { items } = await reader(f).getQuotedPrices({ tenant: 't' });
+  assert.deepStrictEqual(items, [{ siteId: 'cu1', prices: [
+    { typeId: 'ty1', typeName: 'Pool Service - Weekly', price: 82 },
+    { typeId: 'ty2', typeName: 'Pool Closing', price: 450 },
+  ] }], 'no type or no price cannot price a visit and is dropped; customers without a card are left out');
+  assert.match(f.calls[0].query, /quotedPrices \{ id typeId price serviceTypeDisplay \}/);
+  assert.doesNotMatch(f.calls[0].query, /streetAddress/, 'its own query, not the site read');
+});
+
 test('a site with no tags carries an empty list, never null', async () => {
   const f = fakeFetch([conn('infiniteCustomers', [
     { id: 'cu1', firstName: 'a', status: 'ACTIVE' },

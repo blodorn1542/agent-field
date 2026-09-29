@@ -38,12 +38,12 @@ function reader(fetchImpl = spyFetch()) {
 
 /* ------------------------------------------------- the surface is the list -- */
 
-test('fieldReader exposes exactly the four reads and nothing else', () => {
+test('fieldReader exposes exactly the five reads and nothing else', () => {
   const field = reader();
   const callable = Object.keys(field).filter((k) => typeof field[k] === 'function');
   assert.deepStrictEqual(callable.sort(), [...READ_METHODS].sort());
   assert.deepStrictEqual([...READ_METHODS].sort(),
-    ['getAppointments', 'getServiceReports', 'getServiceTypes', 'getSites']);
+    ['getAppointments', 'getQuotedPrices', 'getServiceReports', 'getServiceTypes', 'getSites']);
 });
 
 test('no method on fieldReader is named like a write', () => {
@@ -116,7 +116,7 @@ test('the adapter behind the reader declares only the four reads', () => {
     .create({ credentials: creds(), readTransport: async () => ({}) });
   assert.strictEqual(pomAdapter.writes, undefined);
   assert.deepStrictEqual(Object.keys(pomAdapter.reads).sort(),
-    ['getAppointments', 'getServiceReports', 'getServiceTypes', 'getSites']);
+    ['getAppointments', 'getQuotedPrices', 'getServiceReports', 'getServiceTypes', 'getSites']);
 });
 
 /* --------------------------------------------- the wire refuses a mutation -- */

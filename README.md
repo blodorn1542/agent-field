@@ -39,6 +39,7 @@ Four methods. This is the entire surface.
   — completed records, chemistry included. **Pass `since`.** See below.
 - `getServiceTypes({ tenant })` — the raw service-type catalog, unnormalized.
 - `getSites({ tenant })` — the serviced properties.
+- `getQuotedPrices({ tenant })` — each customer's Custom Pricing card (POM Sales tab): `{ siteId, prices: [{ typeId, typeName, price }] }`, dollars. Its own query, so a key that cannot read it never breaks `getSites`. (v1.3.0)
 
 Each returns `{ items, truncated, pages }`. `truncated: true` means the page cap
 was hit and you are holding a prefix — POM exposes no total count anywhere, so

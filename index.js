@@ -15,7 +15,7 @@
  *
  * There are TWO interfaces and they are built by two different functions:
  *
- *   createFieldReader() - four reads, frozen, and given a transport that
+ *   createFieldReader() - seven reads, frozen, and given a transport that
  *                         throws on any GraphQL operation that is not a query.
  *                         It never receives the write transport.
  *   createFieldWriter() - the seam for agents that change POM. Off per tenant

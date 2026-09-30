@@ -383,3 +383,45 @@ test('an unparseable window is rejected rather than silently ignored', async () 
     /unparseable since/);
   assert.strictEqual(f.calls.length, 0);
 });
+
+/* ------------------------------------------- equipment reads (v1.4.0) -- */
+
+test('getBodiesOfWater returns each customer\'s bodies with the equipment boxes, blanks as null', async () => {
+  const f = fakeFetch([conn('infiniteCustomers', [
+    { id: 'cu1', bodiesOfWater: [{ id: 'b1', name: 'Primary Pool', type: '', volume: 20000, pump: 'Pentair VS', filter: '  ', heater: null, sanitizer: 'Salt', sanitizerDisplayed: 'Salt', winterCoverType: null, other: null }] },
+    { id: 'cu2', bodiesOfWater: [] },
+    { id: 'cu3', bodiesOfWater: null },
+  ])]);
+  const { items } = await reader(f).getBodiesOfWater({ tenant: 't' });
+  assert.strictEqual(items.length, 1, 'a customer with no body is left out');
+  assert.strictEqual(items[0].siteId, 'cu1');
+  const b = items[0].bodies[0];
+  assert.strictEqual(b.bodyId, 'b1');
+  assert.strictEqual(b.pump, 'Pentair VS');
+  assert.strictEqual(b.filter, null, 'whitespace is a blank box');
+  assert.strictEqual(b.type, null);
+  assert.strictEqual(b.volume, 20000);
+  assert.match(f.calls[0].query, /bodiesOfWater \{ id name type volume dimensions notes pump filter heater cleaner sanitizer sanitizerDisplayed winterCoverType other \}/);
+  assert.doesNotMatch(f.calls[0].query, /mutation/);
+});
+
+test('getServicePictures reads only the named customers, newest first, and keeps reports with photos', async () => {
+  const f = fakeFetch([conn('infiniteServices', [
+    { id: 's1', startTime: '2026-05-01T12:00:00.000Z', type: { id: 't1', display: 'Pool Opening - First' }, customer: { id: 'cu1' }, pictures: [{ id: 'p1', file: { url: 'https://f9.cdn.example/a.jpg' } }, { id: 'p2', file: { url: 'http://insecure/b.jpg' } }] },
+    { id: 's2', startTime: '2026-05-08T12:00:00.000Z', type: { id: 't2', display: 'Pool Service - Weekly' }, customer: { id: 'cu1' }, pictures: [] },
+  ])]);
+  const { items } = await reader(f).getServicePictures({ tenant: 't', siteIds: ['cu1'] });
+  assert.deepStrictEqual(items, [{ serviceReportId: 's1', siteId: 'cu1', startTime: '2026-05-01T12:00:00.000Z', serviceTypeName: 'Pool Opening - First', urls: ['https://f9.cdn.example/a.jpg'] }]);
+  assert.deepStrictEqual(f.calls[0].variables.selector, { filters: { customerId: { in: ['cu1'] } } });
+  assert.deepStrictEqual(f.calls[0].variables.sort, [{ field: 'startTime', order: 'DESC' }]);
+  assert.match(f.calls[0].query, /pictures \{ id file \{ url \} \}/);
+});
+
+test('getServicePictures refuses a company-wide read', async () => {
+  const f = fakeFetch([conn('infiniteServices', [])]);
+  await assert.rejects(() => reader(f).getServicePictures({ tenant: 't' }), /siteIds/);
+  await assert.rejects(() => reader(f).getServicePictures({ tenant: 't', siteIds: [] }), /siteIds/);
+  const many = Array.from({ length: 51 }, (_, i) => 'cu' + i);
+  await assert.rejects(() => reader(f).getServicePictures({ tenant: 't', siteIds: many }), /1-50/);
+  assert.strictEqual(f.calls.length, 0, 'nothing was asked of POM');
+});

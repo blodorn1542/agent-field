@@ -425,3 +425,41 @@ test('getServicePictures refuses a company-wide read', async () => {
   await assert.rejects(() => reader(f).getServicePictures({ tenant: 't', siteIds: many }), /1-50/);
   assert.strictEqual(f.calls.length, 0, 'nothing was asked of POM');
 });
+
+test('v1.5.0: a service report names who was there - the PRIMARY worker of the array, never workers.primary', async () => {
+  const f = fakeFetch([conn('infiniteServices', [
+    { id: 's1', startTime: '2026-10-03T14:10:00.000Z', technician: { id: 'u2' }, customer: { id: 'cu1' },
+      workers: [
+        { primary: false, user: { id: 'u1', firstName: 'Chris', lastName: 'Helper' } },
+        { primary: true, user: { id: 'u2', firstName: 'Spencer', lastName: 'Chase' } },
+      ] },
+    { id: 's2', startTime: '2026-10-03T15:00:00.000Z', customer: { id: 'cu2' },
+      workers: [{ user: { id: 'u3', firstName: 'Daniel', lastName: null } }] },
+    { id: 's3', startTime: '2026-10-03T16:00:00.000Z', customer: { id: 'cu3' }, workers: null },
+  ])]);
+  const { items } = await reader(f).getServiceReports({ tenant: 't', since: '2026-10-03T00:00:00.000Z', until: '2026-10-04T00:00:00.000Z' });
+  assert.strictEqual(items[0].technicianName, 'Spencer Chase', 'the primary, not the first');
+  assert.deepStrictEqual(items[0].workers, [
+    { userId: 'u1', name: 'Chris Helper', primary: false }, { userId: 'u2', name: 'Spencer Chase', primary: true },
+  ]);
+  assert.strictEqual(items[1].technicianName, 'Daniel', 'no primary marked: the first worker');
+  assert.strictEqual(items[2].technicianName, null);
+  assert.deepStrictEqual(items[2].workers, []);
+  assert.match(f.calls[0].query, /workers \{ primary user \{ id firstName lastName \} \}/, 'asked for on the wire');
+});
+
+test('v1.5.0: an appointment carries its private notes and its workers\' ids', async () => {
+  const f = fakeFetch([conn('infiniteAppointments', [
+    { id: 'a1', date: '2026-10-06T13:00:00.000Z', status: 'ASSIGNED', notes: null,
+      privateNotes: 'customer says feeder sticking, bring gasket kit', workers: [{ id: 'u2' }, null],
+      serviceType: { id: 't1', display: 'Pool or Spa Check' }, customer: { id: 'cu1', streetAddress: '1109 Head of Pond' } },
+    { id: 'a2', date: '2026-10-06T14:00:00.000Z', status: 'ASSIGNED', customer: { id: 'cu2' } },
+  ])]);
+  const { items } = await reader(f).getAppointments({ tenant: 't', startDate: '2026-10-04', endDate: '2026-10-10' });
+  assert.strictEqual(items[0].privateNotes, 'customer says feeder sticking, bring gasket kit');
+  assert.deepStrictEqual(items[0].workerIds, ['u2']);
+  assert.strictEqual(items[1].privateNotes, null);
+  assert.deepStrictEqual(items[1].workerIds, []);
+  assert.match(f.calls[0].query, /\bprivateNotes\b/);
+  assert.match(f.calls[0].query, /workers \{ id \}/);
+});

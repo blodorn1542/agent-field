@@ -215,6 +215,17 @@ ruleset), `quantity` (POM's per-service quantity, usually null) and
 on this service, often null) and `listPrice` (the inventory item's own price,
 which is what an invoice would carry). Nothing here decides what bills.
 
+### Who was there, and what the booked visit says (v1.5.0)
+
+A shaped service report carries `technicianName` and `workers`
+(`[{ userId, name, primary }]`). `primary` is a property of each element of
+POM's `workers`, not of the array: `workers.primary` is undefined on every
+report, so the primary is `workers.find(w => w.primary)`, and the first
+worker stands in when none is marked. A shaped appointment carries
+`privateNotes` - the office's instruction, and the fuller of POM's two
+appointment notes - and `workerIds` (POM user ids; a name comes from a service
+report's `workers`). Both notes are internal text, never for a customer.
+
 ## Service-type normalization
 
 `getServiceTypes()` returns a company's catalog exactly as that company keeps it.

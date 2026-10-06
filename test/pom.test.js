@@ -285,6 +285,21 @@ test('a site is read from POM Customer records, address first', async () => {
   assert.match(f.calls[0].query, /\btags\b/, 'tags are asked for on the wire');
 });
 
+test('a site carries every other email and phone on the record, distinct, first fields kept apart (AJ Rahman, 2026-10-06)', async () => {
+  const f = fakeFetch([conn('infiniteCustomers', [{
+    id: 'cu9', firstName: '1109 Head of Pond Rd', lastName: 'Rahman', streetAddress: null, city: null, state: null, billingAddress: null,
+    email: 'ma@example.com', alternateEmail: 'AJ@example.com', tertiaryEmail: null, fourthEmail: '', billingEmail: 'MA@example.com', billingCCEmail: 'aj@example.com',
+    phoneNumber: '631-555-0001', alternatePhoneNumber: '(631) 555-0002', tertiaryPhoneNumber: null, fourthPhoneNumber: '6315550001',
+    latitude: null, longitude: null, status: 'ACTIVE', notes: null, tags: [],
+  }])]);
+  const { items } = await reader(f).getSites({ tenant: 't' });
+  assert.strictEqual(items[0].email, 'ma@example.com');
+  assert.deepStrictEqual(items[0].otherEmails, ['AJ@example.com']);
+  assert.deepStrictEqual(items[0].otherPhones, ['(631) 555-0002']);
+  assert.match(f.calls[0].query, /\balternateEmail\b/);
+  assert.match(f.calls[0].query, /\bbillingCCEmail\b/);
+});
+
 test('Custom Pricing: each customer\'s quoted prices per type, in dollars, on their own query (v1.3.0)', async () => {
   const f = fakeFetch([conn('infiniteCustomers', [
     { id: 'cu1', quotedPrices: [
